@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "999461262720",
+    "firebase_url": "https://mobilelab4-eae46.firebaseio.com",
+    "project_id": "mobilelab4-eae46",
+    "storage_bucket": "mobilelab4-eae46.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:999461262720:android:e59df3d2484bb78e",
+        "android_client_info": {
+          "package_name": "com.example.marts.mobilelab4"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "999461262720-9pbfkp8ua50b24pqkom1s41oi9mcqjhg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUhUP_5Q2NOoN6ZNl0Ag8FXwod9yOazgA"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
