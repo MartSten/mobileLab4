@@ -68,19 +68,15 @@ public class MainActivity extends AppCompatActivity {
     //TAG
     private String TAG = "mainActivity";
 
-    //Firebase stuff
-    private FirebaseDatabase database;
-    private DatabaseReference myRef;
+    //Firebase auth
     private FirebaseAuth mAuth;
-
-    Button chatSubmit;
-    TextView chatInn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //If it is the users first time running the app, they will be prompted to enter an username
         checkIfFirstTime();
         username = getUsername();
 
@@ -101,9 +97,6 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
 
         mAuth = FirebaseAuth.getInstance();
-
-        /*database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("message");*/
 
         //Authenticates the user
         signInAnonymously();
@@ -245,8 +238,16 @@ public class MainActivity extends AppCompatActivity {
             //return ChatFragment.newInstance(position + 1);
             switch (position){
                 case 0:
+                    //Uses a bundle to send constructor data since a constructor can't be used in a fragment
+                    Bundle chatBundle = new Bundle();
+                    Log.d("TEST", "Sets username in the bundle: " + username);
+                    chatBundle.putString("username", getUsername()); //Sends the username
+
                     chat chatFragment = new chat();
+                    chatFragment.setArguments(chatBundle);  //Attaches the username to the fragment. Have to be done before the fragment is added to the fragmentManager
+
                     return chatFragment;
+
                 case 1:
                     friends firendsFragment = new friends();
                     return firendsFragment;
