@@ -1,7 +1,15 @@
 package com.example.marts.mobilelab4;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
+import android.util.Config;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,13 +19,11 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -27,8 +33,6 @@ import java.util.Objects;
  */
 
 public class chat extends android.support.v4.app.Fragment {
-
-    private static final String TAG = "PostDetailActivity";
 
     //The user's username
     private String username;
@@ -46,6 +50,7 @@ public class chat extends android.support.v4.app.Fragment {
     //Array that holds received messages
     private ArrayList<String> messageItems;
     private ArrayAdapter<String> arrayAdapter;
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
@@ -69,7 +74,6 @@ public class chat extends android.support.v4.app.Fragment {
         username = bundle.getString("username");
         Log.d("TEST", "Got this username in the fragment: " + username);
 
-
         //Chat submit button
         chatSubmit = rootView.findViewById(R.id.chatSubmitBtn);
         chatSubmit.setOnClickListener(new View.OnClickListener() {
@@ -81,6 +85,14 @@ public class chat extends android.support.v4.app.Fragment {
                    chatInn.setText(null);   //Clears the input-field
                    Toast.makeText(getActivity(), "Message sent", Toast.LENGTH_SHORT).show();
                }
+               /* CODE FOR HIDING KEYBOARD
+                InputMethodManager inputManager = (InputMethodManager)
+                        getActivity().getSystemService(getContext().INPUT_METHOD_SERVICE);
+
+                assert inputManager != null;
+                inputManager.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(),
+                        InputMethodManager.HIDE_NOT_ALWAYS);
+                        */
             }
         });
 
@@ -98,6 +110,7 @@ public class chat extends android.support.v4.app.Fragment {
                 for (DataSnapshot ds: dataSnapshot.getChildren()) {
                     messageToDb message = ds.getValue(messageToDb.class);
                     //Log.d("TEST", "message = " + message.getMessage());
+                    assert message != null;
                     messageItems.add(message.getUser() + ": " + message.getMessage());
                     arrayAdapter.notifyDataSetChanged();
                 }
@@ -142,6 +155,32 @@ public class chat extends android.support.v4.app.Fragment {
 
             return true;
         }
+    }
+
+    private void notification(String title, String text, int priority){
+        String channelName = "chat";
+        String channelDescription = "description";
+
+        String channelId = "chatChannel";
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(getContext(), channelId)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setPriority(priority);
+
+        //Set up notification manager
+       // NotificationManager mNotific = (NotificationManager) Bitmap.Config.context.getSystemService(getContext().NOTIFICATION_SERVICE);
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getContext());
+
+        //*** Notification Channel ***
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel mChannel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_LOW);
+            mChannel.setDescription(channelDescription);
+            mChannel.canShowBadge();
+            mChannel.setShowBadge(true);
+            //notificationManager.createNotificationChannel(mChannel);
+        }
+
+
     }
 
 }
