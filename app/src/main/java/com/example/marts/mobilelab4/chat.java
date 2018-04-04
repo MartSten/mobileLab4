@@ -1,36 +1,25 @@
 package com.example.marts.mobilelab4;
 
-import android.app.Fragment;
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
-
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Objects;
 
 /**
  * Created by marts on 11.03.2018.
@@ -51,10 +40,8 @@ public class chat extends android.support.v4.app.Fragment {
     //Chat listView
     ListView listView;
 
-    //Firebase Database
-    private FirebaseDatabase database;
+    //Firebase Database reference
     private DatabaseReference myRef;
-    private FirebaseFirestore fireDb;
 
     //Array that holds received messages
     private ArrayList<String> messageItems;
@@ -76,7 +63,6 @@ public class chat extends android.support.v4.app.Fragment {
 
         //Firebase Database
         myRef = FirebaseDatabase.getInstance().getReference();
-        fireDb = FirebaseFirestore.getInstance();
 
         //Gets the username from the MainActivity
         Bundle bundle = getArguments();
@@ -89,8 +75,7 @@ public class chat extends android.support.v4.app.Fragment {
         chatSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view ) {
-                //Log.d("TEST", "subBtn was pressed");
-               if(!submitMessage(chatInn.getText().toString())){
+               if(!submitMessage()){
                    Toast.makeText(getActivity(), "ERROR - faild to submit message", Toast.LENGTH_SHORT).show();
                }else {
                    chatInn.setText(null);   //Clears the input-field
@@ -106,67 +91,55 @@ public class chat extends android.support.v4.app.Fragment {
     public void onStart() {
         super.onStart();
 
-        ValueEventListener postListener = new ValueEventListener() {
+        myRef.addChildEventListener(new ChildEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                Log.d("TEST", "Retrieving posted data");
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
 
                 for (DataSnapshot ds: dataSnapshot.getChildren()) {
-                    //messageToDb temp = ds.getValue(messageToDb.class);
-
-                    for (DataSnapshot dsChild: ds.getChildren()) {
-                        messageToDb messageFromDb = dsChild.getValue(messageToDb.class);
-                        messageItems.add(messageFromDb.getUser() + ": " + messageFromDb.getMessage());
-                        arrayAdapter.notifyDataSetChanged();
-                    }
-
+                    messageToDb message = ds.getValue(messageToDb.class);
+                    //Log.d("TEST", "message = " + message.getMessage());
+                    messageItems.add(message.getUser() + ": " + message.getMessage());
+                    arrayAdapter.notifyDataSetChanged();
                 }
+
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                //TO BE IMPLEMENTED LATER
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                //TO BE IMPLEMENTED LATER
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                //TO BE IMPLEMENTED LATER
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                // Getting Post failed, log a message
-                Log.w(TAG, "onCancelled", databaseError.toException());
-                // [START_EXCLUDE]
-                //Toast.makeText(PostDetailActivity.this, "Failed to load post.",
-                        //Toast.LENGTH_SHORT).show();
-                // [END_EXCLUDE]
+                //TO BE IMPLEMENTED LATER
             }
-        };
-        myRef.addValueEventListener(postListener);
+        });
     }
 
     /**
      * submits a message to the db
-     * @param message - the message to be submitted.
      */
-    private boolean submitMessage(String message){
+    private boolean submitMessage(){
         //Checks if the user have entered a message
         String msg = chatInn.getText().toString();
-        if(msg == "" || msg == null){
+        if(Objects.equals(msg, "")){
             Log.d("TEST", "sub failed - empty message");
             return false;
         }else {
             Log.d("TEST", "message was not empty");
             messageToDb messages = new messageToDb(msg, username);
             myRef.push().child("messages").setValue(messages);
-            /*
-            Map<String, Object>cloudMesage = new HashMap<>();
-            cloudMesage.put("m", msg);
-            cloudMesage.put("u", username);
-            cloudMesage.put("d", "27-03-2018 16:00:45");
-            fireDb.collection("messages").add(cloudMesage).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                @Override
-                public void onSuccess(DocumentReference documentReference) {
-                    Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.getId());
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Log.w(TAG, "Error adding document", e);
-                }
-            });*/
+
             return true;
         }
     }
