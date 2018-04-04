@@ -6,11 +6,15 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,37 +28,53 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Created by marts on 11.03.2018.
+ * This class handles the chat part of the assignment
  */
 
 public class chat extends android.support.v4.app.Fragment {
 
     private static final String TAG = "PostDetailActivity";
 
-    Context context;
-
+    //The user's username
     private String username;
 
+    //Chat submit button
     Button chatSubmit;
+    //Chat input-field
     TextView chatInn;
+    //Chat listView
+    ListView listView;
 
+    //Firebase Database
     private FirebaseDatabase database;
     private DatabaseReference myRef;
     private FirebaseFirestore fireDb;
 
+    //Array that holds received messages
+    private ArrayList<String> messageItems;
+    private ArrayAdapter<String> arrayAdapter;
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.chat_layout, container, false);
 
-       // database = FirebaseDatabase.getInstance();
-       // myRef = database.getReferenceFromUrl("https://mobilelab4-eae46.firebaseio.com/");
+        //Chat input-field
+        chatInn = rootView.findViewById(R.id.chatInput);
+        //Chat listView
+        listView = rootView.findViewById(R.id.listView);
 
+        messageItems = new ArrayList<>();
+        arrayAdapter = new ArrayAdapter<>(getContext(), R.layout.chat_item, messageItems);
+        listView.setAdapter(arrayAdapter);
+
+        //Firebase Database
         myRef = FirebaseDatabase.getInstance().getReference();
         fireDb = FirebaseFirestore.getInstance();
 
@@ -64,17 +84,21 @@ public class chat extends android.support.v4.app.Fragment {
         Log.d("TEST", "Got this username in the fragment: " + username);
 
 
-        chatInn = rootView.findViewById(R.id.chatInput);
+        //Chat submit button
         chatSubmit = rootView.findViewById(R.id.chatSubmitBtn);
         chatSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view ) {
-                Log.d("TEST", "subBtn was pressed");
-                submitMessage(chatInn.getText().toString());
+                //Log.d("TEST", "subBtn was pressed");
+               if(!submitMessage(chatInn.getText().toString())){
+                   Toast.makeText(getActivity(), "ERROR - faild to submit message", Toast.LENGTH_SHORT).show();
+               }else {
+                   chatInn.setText(null);   //Clears the input-field
+                   Toast.makeText(getActivity(), "Message sent", Toast.LENGTH_SHORT).show();
+               }
             }
         });
 
-        //return inflater.inflate(R.layout.chat_layout, container, false);
         return rootView;
     }
 
@@ -85,24 +109,32 @@ public class chat extends android.support.v4.app.Fragment {
         ValueEventListener postListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                // Get Post object and use the values to update the UI
-               // Post post = dataSnapshot.getValue(Post.class);
-                // [START_EXCLUDE]
-                //mBodyView.setText(post.body);
-                // [END_EXCLUDE]
-                Log.d("TEST", "Data was posted");
+
+                Log.d("TEST", "Retrieving posted data");
+
+                for (DataSnapshot ds: dataSnapshot.getChildren()) {
+                    //messageToDb temp = ds.getValue(messageToDb.class);
+
+                    for (DataSnapshot dsChild: ds.getChildren()) {
+                        messageToDb messageFromDb = dsChild.getValue(messageToDb.class);
+                        messageItems.add(messageFromDb.getUser() + ": " + messageFromDb.getMessage());
+                        arrayAdapter.notifyDataSetChanged();
+                    }
+
+                }
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 // Getting Post failed, log a message
-                Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
+                Log.w(TAG, "onCancelled", databaseError.toException());
                 // [START_EXCLUDE]
                 //Toast.makeText(PostDetailActivity.this, "Failed to load post.",
                         //Toast.LENGTH_SHORT).show();
                 // [END_EXCLUDE]
             }
         };
+        myRef.addValueEventListener(postListener);
     }
 
     /**
@@ -110,12 +142,6 @@ public class chat extends android.support.v4.app.Fragment {
      * @param message - the message to be submitted.
      */
     private boolean submitMessage(String message){
-        // messageToDb mtd = createObject(message);
-        // messageToDb mtd = new messageToDb();
-       //messageToDb mtDB = new messageToDb(message, MainActivity.username);
-        //myRef.setValue(mtDB);
-        //myRef.push();
-
         //Checks if the user have entered a message
         String msg = chatInn.getText().toString();
         if(msg == "" || msg == null){
@@ -125,7 +151,7 @@ public class chat extends android.support.v4.app.Fragment {
             Log.d("TEST", "message was not empty");
             messageToDb messages = new messageToDb(msg, username);
             myRef.push().child("messages").setValue(messages);
-
+            /*
             Map<String, Object>cloudMesage = new HashMap<>();
             cloudMesage.put("m", msg);
             cloudMesage.put("u", username);
@@ -140,7 +166,7 @@ public class chat extends android.support.v4.app.Fragment {
                 public void onFailure(@NonNull Exception e) {
                     Log.w(TAG, "Error adding document", e);
                 }
-            });
+            });*/
             return true;
         }
     }

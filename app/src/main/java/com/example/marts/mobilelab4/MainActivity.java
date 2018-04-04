@@ -16,39 +16,17 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.view.WindowManager;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 
 public class MainActivity extends AppCompatActivity {
-
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-     */
-    private SectionsPagerAdapter mSectionsPagerAdapter;
-
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
-    private ViewPager mViewPager;
 
     /**
      * Used to check if this is the first time the app is opened.
@@ -76,6 +54,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //Hides the keyboard on startup of the activity
+        getWindow().setSoftInputMode(
+                WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+
         //If it is the users first time running the app, they will be prompted to enter an username
         checkIfFirstTime();
         username = getUsername();
@@ -83,15 +65,24 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-         // Create the adapter that will return a fragment for each of the three
+        // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+        /*
+      The {@link android.support.v4.view.PagerAdapter} that will provide
+      fragments for each of the sections. We use a
+      {@link FragmentPagerAdapter} derivative, which will keep every
+      loaded fragment in memory. If this becomes too memory intensive, it
+      may be best to switch to a
+      {@link android.support.v4.app.FragmentStatePagerAdapter}.
+     */
+        SectionsPagerAdapter mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.container);
+        //The {@link ViewPager} that will host the section contents.
+        ViewPager mViewPager = findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        TabLayout tabLayout = findViewById(R.id.tabs);
 
         mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
         tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
@@ -101,48 +92,29 @@ public class MainActivity extends AppCompatActivity {
         //Authenticates the user
         signInAnonymously();
 
-       /* chatInn = findViewById(R.id.chatInput);
-        chatSubmit = findViewById(R.id.chatSubmitBtn);
-         chatSubmit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view ) {
-                //submitMessage(chatInn.getText().toString());
-            }
-        }); */
-
     }
 
     /**
-     * submits a message to the db
-     * @param message - the message to be submitted.
-     */
-   /* private void submitMessage(String message){
-      // messageToDb mtd = createObject(message);
-      // messageToDb mtd = new messageToDb();
-        messageToDb mtDB = new messageToDb(message, username);
-        myRef.setValue(mtDB);
-    }*/
-
-    /**
      * gets the user's username from the preferences.
-     * @return
+     *
+     * @return - returns the username of the currently logged inn user
      */
-    private String getUsername(){
-        String uname;
+    private String getUsername() {
+        String username;
         SharedPreferences unamePref = this.getSharedPreferences("username", Context.MODE_PRIVATE);
-        uname = unamePref.getString("username", "BOB");
-        return uname;
+        username = unamePref.getString("username", "BOB");
+        return username;
     }
 
     /**
      * Checks if the user has used the app before.
      */
-    private void checkIfFirstTime(){
-        if(firstTime){
+    private void checkIfFirstTime() {
+        if (firstTime) {
             //SharedPreferences fTimePref = PreferenceManager.getDefaultSharedPreferences(this);
             SharedPreferences fTimePref = this.getSharedPreferences("firstTime", Context.MODE_PRIVATE);
             firstTime = fTimePref.getBoolean("firstTime", true);    //true = default value
-            if(firstTime){
+            if (firstTime) {
                 Intent i = new Intent(this, login.class);
                 startActivityForResult(i, myReslutCode);
             }
@@ -181,8 +153,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(myReslutCode == requestCode){
-            if(resultCode == RESULT_OK){
+        if (myReslutCode == requestCode) {
+            if (resultCode == RESULT_OK) {
                 //FIRST TIME
                 SharedPreferences fTimePref = this.getSharedPreferences("firstTime", Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor = fTimePref.edit();
@@ -227,16 +199,13 @@ public class MainActivity extends AppCompatActivity {
      */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-        public SectionsPagerAdapter(FragmentManager fm) {
+        SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
         }
 
         @Override
         public Fragment getItem(int position) {
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
-            //return ChatFragment.newInstance(position + 1);
-            switch (position){
+            switch (position) {
                 case 0:
                     //Uses a bundle to send constructor data since a constructor can't be used in a fragment
                     Bundle chatBundle = new Bundle();
@@ -267,5 +236,9 @@ public class MainActivity extends AppCompatActivity {
             return mFragmentTitleList.get(position);
         }
     */
+    }
+
+    public Context getContext(){
+        return this;
     }
 }
