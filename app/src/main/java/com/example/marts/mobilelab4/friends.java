@@ -56,9 +56,10 @@ public class friends extends android.support.v4.app.Fragment {
         friendsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Intent intent = new Intent();
+                Intent intent = new Intent(getContext(), FriendMessages.class);
                 String temp = (String) adapterView.getItemAtPosition(i);
                 intent.putExtra("friend", temp);
+                startActivity(intent);
             }
         });
 
@@ -74,7 +75,7 @@ public class friends extends android.support.v4.app.Fragment {
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 for (DataSnapshot ds: dataSnapshot.getChildren()) {
                     messageToDb friends = ds.getValue(messageToDb.class);
-                    assert friends != null;
+                    //assert friends != null; //Had to be removed as it showed multiple copies of the same user
                     //Add only unique usernames to the list
                     if(!friendsArray.contains(friends.getUser())){
                         friendsArray.add(friends.getUser());
